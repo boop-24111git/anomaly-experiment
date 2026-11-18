@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>画像に関する評価実験</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .screen {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .active {
+            display: block;
+        }
+
+        h1, h2 {
+            margin-top: 0;
+        }
+
+        .alert-box {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"], select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            height: 80px;
+            resize: vertical;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #bd2130;
+        }
+
+        .img-wrapper-center {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .img-container {
+            position: relative;
+            display: inline-block;
+            background: #eaeaea;
+            border-radius: 4px;
+            overflow: hidden;
+            user-select: none;
+            max-width: 100%;
+        }
+
+        #experiment-img {
+            max-width: 100%;
+            max-height: 500px;
+            cursor: crosshair;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .marker {
+            position: absolute;
+            background-color: rgba(255, 0, 0, 0.85);
+            border-radius: 50%;
+            pointer-events: none;
+            border: 2px solid white;
+            box-shadow: 0 0 4px rgba(0,0,0,0.5);
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .marker.primary-marker {
+            background-color: rgba(255, 140, 0, 0.95);
+            border: 2px solid #ffff00;
+        }
+
+        .progress {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .slider-container {
+            background: #f0f4f8;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-top: 5px;
+            display: inline-block;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .checkbox-label {
+            font-weight: normal;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            background: #f9f9f9;
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .checkbox-label input {
+            margin-right: 8px;
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. ホーム（属性入力画面） -->
+    <div id="screen-login" class="screen active">
+        <h1>画像に関する評価実験</h1>
+
+        <div class="alert-box">
+            <h3>⚠️ 実験の注意事項</h3>
+            <ul>
+                <li>表示される画像を見て、視覚的に「不自然だ」「おかしい」と感じる部分（違和感）を評価していただきます。</li>
+                <li>違和感のある場所は**最大5箇所まで**クリックしてマーカーを打つことができます。</li>
+                <li>**1箇所目**は、画像の中で**最も違和感を感じる場所**として記録されます。</li>
+                <li>制限時間はございませんので、ご自身のペースでじっくり観察してください。</li>
+                <li>実験は途中で終了（中断）することも可能です。</li>
+            </ul>
+        </div>
+
+        <!-- 性別 -->
+        <div class="form-group">
+            <label for="user-gender">性別 <span style="color:red;">*（必須）</span>:</label>
+            <select id="user-gender">
+                <option value="">-- 選択してください --</option>
+                <option value="男性">男性</option>
+                <option value="女性">女性</option>
+            </select>
+        </div>
+
+        <!-- 属性（立場） -->
+        <div class="form-group">
+            <label for="user-attribute">所属・立場 <span style="color:red;">*</span>:</label>
+            <select id="user-attribute">
+                <option value="大学生・大学院生">大学生・大学院生</option>
+                <option value="高専・専門学生">高専・専門学生</option>
+                <option value="高校生以下">高校生以下</option>
+                <option value="会社員（IT・Web・開発系）">会社員（IT・Web・開発系）</option>
+                <option value="会社員（その他）">会社員（その他）</option>
+                <option value="クリエイター・デザイナー">クリエイター・デザイナー</option>
+                <option value="その他">その他</option>
+            </select>
+        </div>
+
+        <!-- 画像生成AIの利用頻度 -->
+        <div class="form-group">
+            <label for="user-ai-freq">画像生成AIの利用・接触頻度 <span style="color:red;">*</span>:</label>
+            <select id="user-ai-freq">
+                <option value="ほぼ毎日（よく使う）">ほぼ毎日（よく使う）</option>
+                <option value="週に数回程度">週に数回程度</option>
+                <option value="月に数回程度">月に数回程度</option>
+                <option value="ほとんど使わない・見ない">ほとんど使わない・見ない</option>
+            </select>
+        </div>
+
+        <!-- 年齢区分 -->
+        <div class="form-group">
+            <label for="user-age">年齢区分 <span style="color:red;">*</span>:</label>
+            <select id="user-age">
+                <option value="0-5歳">0–5歳</option>
+                <option value="6-10歳">6–10歳</option>
+                <option value="11-15歳">11–15歳</option>
+                <option value="16-20歳">16–20歳</option>
+                <option value="21-25歳" selected>21–25歳</option>
+                <option value="26-30歳">26–30歳</option>
+                <option value="31-35歳">31–35歳</option>
+                <option value="36-40歳">36–40歳</option>
+                <option value="41-45歳">41–45歳</option>
+                <option value="46-50歳">46–50歳</option>
+                <option value="51-55歳">51–55歳</option>
+                <option value="56-60歳">56–60歳</option>
+                <option value="61-65歳">61–65歳</option>
+                <option value="66歳以上">66歳以上</option>
+            </select>
+        </div>
+
+        <button onclick="startExperiment()">実験を開始する</button>
+    </div>
+
+    <!-- 2. 実験画面 -->
+    <div id="screen-experiment" class="screen">
+        <div class="progress">進捗: <span id="current-index">1</span> / <span id="total-images">0</span> 枚目</div>
+
+        <div class="img-wrapper-center">
+            <div class="img-container" id="img-wrapper">
+                <img id="experiment-img" src="" alt="実験画像" onclick="recordClick(event)">
+                <div id="marker-container"></div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <button type="button" class="btn-secondary" style="padding: 6px 12px; font-size: 13px;" onclick="undoLastMarker()">直前のマーカーを取り消す</button>
+            <button type="button" class="btn-secondary" style="padding: 6px 12px; font-size: 13px;" onclick="clearAllMarkers()">全てのマーカーをクリア</button>
+        </div>
+
+        <!-- 違和感スコア -->
+        <div class="form-group">
+            <label>1. この画像全体の違和感スコアを評価してください</label>
+            <select id="score-macro" style="padding: 8px; font-size: 16px;">
+                <option value="1">1 (自然・違和感なし)</option>
+                <option value="2">2 (どちらでもない)</option>
+                <option value="3">3 (不自然・違和感あり)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>2. 「変だ」と思う部分を画像内でクリックしてください（最大5箇所まで / 任意）</label>
+            <p style="font-size: 12px; color: #666; margin: 0 0 8px 0;">
+                ※<strong>1箇所目（オレンジ色の点）</strong>は画像において<strong>【最も違和感を感じる場所】</strong>として扱われます。<br>
+                ※2〜5箇所目はその他の気になる場所として追加できます。
+            </p>
+
+            <div class="slider-container">
+                <label for="marker-size-slider" style="font-size: 14px; margin-bottom: 5px; display: inline-block;">🔴 赤丸の大きさ調整：</label>
+                <input type="range" id="marker-size-slider" min="10" max="40" value="18" step="2" oninput="updateMarkerSize()">
+                <span id="slider-value" style="font-size: 14px; font-weight: bold; margin-left: 5px;">18px</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>3. 違和感を覚えた要素・特徴を選択してください（複数選択可）</label>
+            <div class="checkbox-group">
+                <label class="checkbox-label"><input type="checkbox" name="reason-cat" value="明るさ・暗さの不自然さ"> 明るすぎる・暗すぎる</label>
+                <label class="checkbox-label"><input type="checkbox" name="reason-cat" value="コントラスト・階調の不自然さ"> コントラスト・階調の不自然さ</label>
+                <label class="checkbox-label"><input type="checkbox" name="reason-cat" value="画質の荒さ・ノイズ"> 画質が荒い・ノイズがある</label>
+                <label class="checkbox-label"><input type="checkbox" name="reason-cat" value="形・構造がおかしい"> 形・構造がおかしい（手足・建物など）</label>
+                <label class="checkbox-label"><input type="checkbox" name="reason-cat" value="テクスチャの細部"> テクスチャの細部（のっぺり感・過剰なスムージング） </label>
+                <label class="checkbox-label"><input type="checkbox" name="reason-cat" value="文字がおかしい・潰れている"> 文字がおかしい・潰れている（看板や本など）</label>
+                <label class="checkbox-label"><input type="checkbox" name="reason-cat" value="影や光の当たり方が変"> 影や光の当たり方が変</label>
+                <label class="checkbox-label"><input type="checkbox" name="reason-cat" value="ピントやぼかし方が不自然"> ピントやぼかし方が不自然</label>
+                <label class="checkbox-label"><input type="checkbox" name="reason-cat" value="色合いや質感が人工的・不自然"> 色合いや質感が人工的・不自然</label>
+                <label class="checkbox-label"><input type="checkbox" name="reason-cat" value="背景と被写体が馴染んでいない"> 背景と被写体が馴染んでいない（浮いている）</label>
+                <label class="checkbox-label"><input type="checkbox" name="reason-cat" value="左右のバランスがおかしい"> 左右のバランスがおかしい（模様や装飾など）</label>
+                <label class="checkbox-label"><input type="checkbox" name="reason-cat" value="エッジ・境界線の処理の不自然さ"> エッジ・境界線の処理の不自然さ</label>
+                <label class="checkbox-label"><input type="checkbox" name="reason-cat" value="その他"> その他</label>
+            </div>
+        </div>
+
+        <!-- 4番：「その他」を選択した人向けの記述枠 -->
+        <div class="form-group">
+            <label for="reason-text">4. 上記で「その他」を選択された方は、どこがおかしかったか具体的にお書きください（任意）</label>
+            <textarea id="reason-text" placeholder="例：上記の選択肢に当てはまらない違和感（例：反射の向きがおかしい、等）があればご記入ください"></textarea>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+            <button id="btn-prev" class="btn-secondary" onclick="prevImage()">前の画像へ</button>
+            <button onclick="nextImage()">次の画像へ</button>
+            <button class="btn-danger" onclick="abortExperiment()">途中終了してデータを送信</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 🌐 Googleスプレッドシート（GAS）のURL設定
+        // ==========================================
+        const GAS_URL = "https://script.google.com/macros/s/あなたのGASのURL/exec";
+        // ==========================================
+
+        const realImages = [];
+        for (let i = 0; i <= 24; i++) {
+            const num = String(i).padStart(3, '0');
+            realImages.push(`dataset/real/real_${num}.jpg`);
+        }
+
+        const aiImages = [];
+        for (let i = 0; i <= 24; i++) {
+            const num = String(i).padStart(3, '0');
+            aiImages.push(`dataset/ai/ai_${num}.jpg`);
+        }
+
+        let experimentImages = [];
+        let currentIndex = 0;
+        let userName = "";
+        let userGender = "";
+        let userAttribute = "";
+        let userAiFreq = "";
+        let userAge = "";
+        let userId = "";
+
+        let answers = [];
+        let currentMarkers = [];
+        let currentMarkerSize = 18;
+
+        function startExperiment() {
+            userGender = document.getElementById("user-gender").value;
+            userAttribute = document.getElementById("user-attribute").value;
+            userAiFreq = document.getElementById("user-ai-freq").value;
+            userAge = document.getElementById("user-age").value;
+
+            if (!userGender) {
+                alert("性別を選択してください（必須項目です）。");
+                return;
+            }
+
+            // 匿名番号の自動カウントアップ（被験者ごとに自動で「匿名1」「匿名2」…と割り振られます）
+            let anonCount = parseInt(localStorage.getItem("experiment_anon_count") || "0", 10) + 1;
+            localStorage.setItem("experiment_anon_count", anonCount);
+            userName = `匿名${anonCount}`;
+
+            userId = "ID-" + Math.floor(Date.now() / 1000);
+
+            const realList = realImages.map(path => ({ path: path, type: "Real" }));
+            const aiList = aiImages.map(path => ({ path: path, type: "AI" }));
+
+            const combinedList = [];
+            const maxLen = Math.max(realList.length, aiList.length);
+            for (let i = 0; i < maxLen; i++) {
+                if (i < realList.length) combinedList.push(realList[i]);
+                if (i < aiList.length) combinedList.push(aiList[i]);
+            }
+
+            experimentImages = combinedList;
+
+            if (experimentImages.length === 0) {
+                alert("画像リストが空です。");
+                return;
+            }
+
+            document.getElementById("screen-login").classList.remove("active");
+            document.getElementById("screen-experiment").classList.add("active");
+
+            document.getElementById("total-images").innerText = experimentImages.length;
+            showImage();
+        }
+
+        function showImage() {
+            document.getElementById("current-index").innerText = currentIndex + 1;
+            const imgElement = document.getElementById("experiment-img");
+
+            imgElement.src = experimentImages[currentIndex].path;
+
+            const prevBtn = document.getElementById("btn-prev");
+            prevBtn.style.display = (currentIndex === 0) ? "none" : "inline-block";
+
+            if (answers[currentIndex]) {
+                const saved = answers[currentIndex];
+                document.getElementById("score-macro").value = saved.score;
+                document.getElementById("reason-text").value = saved.reasonRaw || "";
+
+                const checkboxes = document.querySelectorAll('input[name="reason-cat"]');
+                checkboxes.forEach(cb => {
+                    cb.checked = saved.categoriesArray.includes(cb.value);
+                });
+
+                currentMarkers = JSON.parse(JSON.stringify(saved.markers));
+            } else {
+                document.getElementById("score-macro").value = "1";
+                document.getElementById("reason-text").value = "";
+
+                const checkboxes = document.querySelectorAll('input[name="reason-cat"]');
+                checkboxes.forEach(cb => cb.checked = false);
+
+                currentMarkers = [];
+            }
+
+            imgElement.onload = () => {
+                renderMarkers();
+            };
+            renderMarkers();
+        }
+
+        function recordClick(event) {
+            if (currentMarkers.length >= 5) {
+                alert("マーカーは最大5箇所までです。");
+                return;
+            }
+
+            const img = document.getElementById("experiment-img");
+            const rect = img.getBoundingClientRect();
+
+            const clickedX = Math.round(event.clientX - rect.left);
+            const clickedY = Math.round(event.clientY - rect.top);
+
+            if (clickedX < 0 || clickedX > rect.width || clickedY < 0 || clickedY > rect.height) {
+                return;
+            }
+
+            const relX = clickedX / rect.width;
+            const relY = clickedY / rect.height;
+
+            currentMarkers.push({
+                x: clickedX,
+                y: clickedY,
+                relX: relX,
+                relY: relY
+            });
+
+            renderMarkers();
+        }
+
+        function renderMarkers() {
+            const container = document.getElementById("marker-container");
+            container.innerHTML = "";
+
+            const img = document.getElementById("experiment-img");
+            const rect = img.getBoundingClientRect();
+
+            currentMarkers.forEach((m, idx) => {
+                const markerEl = document.createElement("div");
+                markerEl.className = "marker";
+
+                if (idx === 0) {
+                    markerEl.classList.add("primary-marker");
+                }
+
+                markerEl.innerText = idx + 1;
+
+                markerEl.style.width = currentMarkerSize + "px";
+                markerEl.style.height = currentMarkerSize + "px";
+                markerEl.style.fontSize = Math.max(9, Math.floor(currentMarkerSize * 0.55)) + "px";
+
+                const posX = m.relX * rect.width;
+                const posY = m.relY * rect.height;
+
+                markerEl.style.left = posX + "px";
+                markerEl.style.top = posY + "px";
+                markerEl.style.transform = "translate(-50%, -50%)";
+
+                container.appendChild(markerEl);
+            });
+        }
+
+        function undoLastMarker() {
+            if (currentMarkers.length > 0) {
+                currentMarkers.pop();
+                renderMarkers();
+            }
+        }
+
+        function clearAllMarkers() {
+            currentMarkers = [];
+            renderMarkers();
+        }
+
+        function updateMarkerSize() {
+            const slider = document.getElementById("marker-size-slider");
+            currentMarkerSize = parseInt(slider.value, 10);
+            document.getElementById("slider-value").innerText = currentMarkerSize + "px";
+            renderMarkers();
+        }
+
+        window.addEventListener("resize", () => {
+            if (document.getElementById("screen-experiment").classList.contains("active")) {
+                renderMarkers();
+            }
+        });
+
+        function prevImage() {
+            if (currentIndex > 0) {
+                saveCurrentData();
+                currentIndex--;
+                showImage();
+            }
+        }
+
+        function nextImage() {
+            saveCurrentData();
+            sendCurrentDataToSpreadsheet();
+
+            currentIndex++;
+            if (currentIndex < experimentImages.length) {
+                showImage();
+            } else {
+                alert("すべての実験が終了しました。ご協力ありがとうございました！");
+                location.reload();
+            }
+        }
+
+        function abortExperiment() {
+            if (confirm("実験を途中で終了し、ここまでのデータを保存しますか？")) {
+                saveCurrentData();
+                sendCurrentDataToSpreadsheet();
+                alert("データを送信しました。お疲れ様でした！");
+                location.reload();
+            }
+        }
+
+        function saveCurrentData() {
+            const score = document.getElementById("score-macro").value;
+            const selectedCats = Array.from(document.querySelectorAll('input[name="reason-cat"]:checked'))
+                .map(cb => cb.value);
+            const reasonRaw = document.getElementById("reason-text").value;
+
+            answers[currentIndex] = {
+                score: score,
+                categoriesArray: selectedCats,
+                reasonRaw: reasonRaw,
+                markers: JSON.parse(JSON.stringify(currentMarkers))
+            };
+        }
+
+        function sendCurrentDataToSpreadsheet() {
+            const ans = answers[currentIndex];
+            const imgData = experimentImages[currentIndex];
+            if (!ans || !imgData) return;
+
+            const categoriesStr = ans.categoriesArray.length > 0 ? ans.categoriesArray.join("|") : "特になし";
+            const reasonCleanText = ans.reasonRaw ? ans.reasonRaw.replace(/,/g, " ").replace(/\n/g, " ") : "特になし";
+
+            let primaryMarkerStr = "None";
+            let subMarkersStr = "None";
+
+            if (ans.markers.length > 0) {
+                primaryMarkerStr = `${ans.markers[0].x}:${ans.markers[0].y}`;
+                if (ans.markers.length > 1) {
+                    subMarkersStr = ans.markers.slice(1).map(m => `${m.x}:${m.y}`).join(";");
+                }
+            }
+
+            const postData = {
+                userId: userId,
+                userName: userName,
+                userGender: userGender,
+                userAttribute: userAttribute,
+                userAiFreq: userAiFreq,
+                userAge: userAge,
+                imagePath: imgData.path,
+                imageType: imgData.type,
+                score: ans.score,
+                markerCount: ans.markers.length,
+                primaryMarker: primaryMarkerStr,
+                subMarkers: subMarkersStr,
+                categories: categoriesStr,
+                reason: reasonCleanText
+            };
+
+            fetch(GAS_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(postData)
+            }).catch(error => {
+                console.error("送信エラー:", error);
+            });
+        }
+    </script>
+</body>
+</html>
