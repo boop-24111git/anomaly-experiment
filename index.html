@@ -616,3 +616,68 @@
     </script>
 </body>
 </html>
+<!-- 隠しリセットパネル（初期状態は非表示） -->
+<div id="secret-reset-panel" style="display: none; position: fixed; right: 16px; bottom: 16px; z-index: 9999; background: #1e1e1e; color: #fff; padding: 12px 14px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 13px;">
+    <div style="margin-bottom: 8px; font-weight: bold;">管理者用：匿名リセット</div>
+    <button id="exec-anon-reset-btn" type="button" style="background: #d9534f; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-right: 6px;">
+        匿名番号をリセット
+    </button>
+    <button id="close-reset-panel-btn" type="button" style="background: #555; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer;">
+        閉じる
+    </button>
+</div>
+
+<script>
+    (() => {
+        // PC判定：スマホ・タブレットなどのタッチ端末（粗いポインタ）を除外
+        function isPcDevice() {
+            const isCoarsePointer = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+            return !isCoarsePointer;
+        }
+
+        const panel = document.getElementById("secret-reset-panel");
+        const resetBtn = document.getElementById("exec-anon-reset-btn");
+        const closeBtn = document.getElementById("close-reset-panel-btn");
+
+        // 匿名番号リセット処理
+        function resetAnonymousState() {
+            const keysToRemove = [
+                "userName",
+                "userId",
+                "anonNumber",
+                "anonCounter"
+            ];
+            keysToRemove.forEach((k) => localStorage.removeItem(k));
+        }
+
+        // 隠しコマンド：PCで Alt + Shift + R を押したときだけパネルを表示／非表示
+        document.addEventListener("keydown", (event) => {
+            if (!isPcDevice()) return;
+            if (event.repeat) return;
+
+            if (event.altKey && event.shiftKey && event.key.toLowerCase() === "r") {
+                event.preventDefault();
+                if (panel) {
+                    panel.style.display = panel.style.display === "none" ? "block" : "none";
+                }
+            }
+        });
+
+        if (resetBtn) {
+            resetBtn.addEventListener("click", () => {
+                const ok = window.confirm("匿名番号・関連データをリセットしますか？");
+                if (!ok) return;
+
+                resetAnonymousState();
+                if (panel) panel.style.display = "none";
+                window.alert("匿名番号をリセットしました。ページを再読み込みして状態を確認してください。");
+            });
+        }
+
+        if (closeBtn) {
+            closeBtn.addEventListener("click", () => {
+                if (panel) panel.style.display = "none";
+            });
+        }
+    })();
+</script>
