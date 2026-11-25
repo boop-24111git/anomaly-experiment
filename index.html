@@ -71,27 +71,27 @@
             font-weight: bold;
         }
 
-        button:hover {
-            background-color: #0056b3;
-        }
+            button:hover {
+                background-color: #0056b3;
+            }
 
         .btn-secondary {
             background-color: #6c757d;
             color: white;
         }
 
-        .btn-secondary:hover {
-            background-color: #5a6268;
-        }
+            .btn-secondary:hover {
+                background-color: #5a6268;
+            }
 
         .btn-danger {
             background-color: #dc3545;
             color: white;
         }
 
-        .btn-danger:hover {
-            background-color: #bd2130;
-        }
+            .btn-danger:hover {
+                background-color: #bd2130;
+            }
 
         .img-wrapper-center {
             text-align: center;
@@ -132,10 +132,10 @@
             z-index: 10;
         }
 
-        .marker.primary-marker {
-            background-color: rgba(255, 140, 0, 0.95);
-            border: 2px solid #ffff00;
-        }
+            .marker.primary-marker {
+                background-color: rgba(255, 140, 0, 0.95);
+                border: 2px solid #ffff00;
+            }
 
         .progress {
             font-size: 18px;
@@ -169,10 +169,10 @@
             border-radius: 4px;
         }
 
-        .checkbox-label input {
-            margin-right: 8px;
-            width: auto;
-        }
+            .checkbox-label input {
+                margin-right: 8px;
+                width: auto;
+            }
     </style>
 </head>
 <body>
@@ -325,9 +325,13 @@
 
     <script>
         // ==========================================
-        // 🌐 Googleスプレッドシート（GAS）のURL設定
+        // 🌐 Googleスプレッドシート（GAS）のURL・環境設定
         // ==========================================
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxJY_vorj5JnBL3fFu1aLwVHPycN_zRr8nnwZTx2M576-gJ4RT6MhZyfvdJc80Dzkmb_Q/exec";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbyGZkXH7yT_UbpIf8_yV7kj0sBzWx1n5GLk2qVU7TzMXbW27JH1ZX-Ud4bGRFkpf5t-/exec";
+
+        // URLの ?env=prod を読み取り、未指定やそれ以外は "test" にする
+        const urlParams = new URLSearchParams(window.location.search);
+        const ENV_MODE = (urlParams.get("env") || "").toLowerCase() === "prod" ? "prod" : "test";
         // ==========================================
 
         const realImages = [];
@@ -582,6 +586,7 @@
             }
 
             const postData = {
+                env: ENV_MODE,
                 userId: userId,
                 userName: userName,
                 userGender: userGender,
